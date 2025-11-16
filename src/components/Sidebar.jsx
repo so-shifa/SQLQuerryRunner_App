@@ -1,143 +1,85 @@
 // src/components/Sidebar.jsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "../styles/Sidebar.css";
 
-export default function Sidebar() {
+export default function Sidebar({ onTableSelect }) {
+  const [tables, setTables] = useState([]);
+  const [tableData, setTableData] = useState({}); // { tableName: rows }
+  const [loading, setLoading] = useState(false);
+
+  // Fetch list of tables
+  useEffect(() => {
+    fetch("http://localhost:5000/tables")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.status === "success") {
+          setTables(
+            data.tables.filter(
+              (name) => name !== "Users" && name !== "QueryHistory"
+            )
+          );
+        }
+      });
+  }, []);
+
+  // Fetch preview rows when each table appears
+  const fetchPreview = async (table) => {
+    setLoading(true);
+    const res = await fetch(`http://localhost:5000/preview/${table}`);
+    const data = await res.json();
+    setLoading(false);
+
+    if (data.status === "success") {
+      setTableData((prev) => ({
+        ...prev,
+        [table]: data.rows,
+      }));
+    }
+  };
+
+  // Fetch preview for all tables once loaded
+  useEffect(() => {
+    tables.forEach((t) => fetchPreview(t));
+  }, [tables]);
+
   return (
     <div className="sidebar-root">
-      <div className="sidebar-section">
-        <h3>Customers</h3>
-        <div className="table-wrap">
-          <table className="db-table">
-            <thead>
-              <tr>
-                <th>customer_id</th>
-                <th>first_name</th>
-                <th>last_name</th>
-                <th>age</th>
-                <th>country</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>1</td>
-                <td>John</td>
-                <td>Doe</td>
-                <td>31</td>
-                <td>USA</td>
-              </tr>
-              <tr>
-                <td>2</td>
-                <td>Robert</td>
-                <td>Luna</td>
-                <td>22</td>
-                <td>USA</td>
-              </tr>
-              <tr>
-                <td>3</td>
-                <td>David</td>
-                <td>Robinson</td>
-                <td>22</td>
-                <td>UK</td>
-              </tr>
-              <tr>
-                <td>4</td>
-                <td>John</td>
-                <td>Reinhardt</td>
-                <td>25</td>
-                <td>UK</td>
-              </tr>
-              <tr>
-                <td>5</td>
-                <td>Betty</td>
-                <td>Doe</td>
-                <td>28</td>
-                <td>UAE</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+      {tables.map((t) => (
+        <div className="sidebar-section" key={t}>
+          <h3 onClick={() => onTableSelect(t)} style={{ cursor: "pointer" }}>
+            {t}
+          </h3>
 
-      <div className="sidebar-section">
-        <h3>Orders</h3>
-        <div className="table-wrap">
-          <table className="db-table">
-            <thead>
-              <tr>
-                <th>order_id</th>
-                <th>item</th>
-                <th>amount</th>
-                <th>customer_id</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>1</td>
-                <td>Keyboard</td>
-                <td>400</td>
-                <td>4</td>
-              </tr>
-              <tr>
-                <td>2</td>
-                <td>Mouse</td>
-                <td>300</td>
-                <td>4</td>
-              </tr>
-              <tr>
-                <td>3</td>
-                <td>Monitor</td>
-                <td>12000</td>
-                <td>3</td>
-              </tr>
-              <tr>
-                <td>4</td>
-                <td>Keyboard</td>
-                <td>400</td>
-                <td>1</td>
-              </tr>
-              <tr>
-                <td>5</td>
-                <td>Mousepad</td>
-                <td>250</td>
-                <td>2</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+          <div className="table-wrap">
+            <table className="db-table">
+              <thead>
+                <tr>
+                  {tableData[t] &&
+                    Object.keys(tableData[t][0] || {}).map((col) => (
+                      <th key={col}>{col}</th>
+                    ))}
+                </tr>
+              </thead>
 
-      <div className="sidebar-section">
-        <h3>Shippings</h3>
-        <div className="table-wrap">
-          <table className="db-table">
-            <thead>
-              <tr>
-                <th>shipping_id</th>
-                <th>status</th>
-                <th>customer</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>1</td>
-                <td>Pending</td>
-                <td>2</td>
-              </tr>
-              <tr>
-                <td>2</td>
-                <td>Pending</td>
-                <td>4</td>
-              </tr>
-              <tr>
-                <td>3</td>
-                <td>Completed</td>
-                <td>1</td>
-              </tr>
-            </tbody>
-          </table>
+              <tbody>
+                {tableData[t] ? (
+                  tableData[t].map((row, idx) => (
+                    <tr key={idx}>
+                      {Object.values(row).map((val, i) => (
+                        <td key={i}>{val}</td>
+                      ))}
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td>Loading...</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      ))}
     </div>
   );
 }

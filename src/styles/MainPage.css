@@ -1,4 +1,4 @@
-/* src/styles/MainPage.css (updated) */
+/* src/styles/MainPage.css (FINAL FIXED FOR TOP BUTTON POSITION) */
 
 :root {
   --accent: #2563eb;
@@ -6,7 +6,12 @@
   --glass-bg: rgba(255, 255, 255, 0.5);
   --glass-border: rgba(255, 255, 255, 0.28);
   --shadow: 0 8px 20px rgba(12, 22, 40, 0.08);
+
+  --left-col-width: 470px;
+  --right-col-width: 360px;
 }
+
+/* dark mode */
 body.dark {
   --glass-bg: hsla(230, 40%, 6%, 0.797);
   --glass-border: rgba(255, 255, 255, 0.12);
@@ -14,23 +19,21 @@ body.dark {
   color: white;
 }
 
-/* prevent horizontal scroll */
 html,
 body,
 #root {
-  height: 100%;
   margin: 0;
+  height: 100%;
   overflow-x: hidden;
 }
 
-/* page base */
 .main-page {
   min-height: 100vh;
   background: linear-gradient(135deg, #dbeafe, #bfdbfe 60%, #e6f0ff);
   transition: background 0.35s;
 }
 
-/* header */
+/********* HEADER *********/
 .header {
   display: flex;
   justify-content: space-between;
@@ -39,81 +42,72 @@ body,
   margin: 12px;
   border-radius: 10px;
 }
+
 .header .brand {
-  font-weight: 700;
+  font-weight: bold;
   font-size: 20px;
   color: var(--accent);
 }
-.header-right {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-}
-.logout-btn {
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-}
 
-/* layout container is relative so handles can be absolute inside */
+/********* LAYOUT *********/
+
 .layout-wrap {
+  position: relative;
   display: flex;
   gap: 14px;
-  padding: 10px 20px 40px 20px;
+  padding: 10px 20px 40px;
   align-items: stretch;
-  position: relative;
 }
 
-/* collapse handle (absolute placed between panels) */
+/********* COLLAPSE BUTTONS (TOP POSITION) *********/
+
 .collapse-handle {
   position: absolute;
-  width: 36px;
-  height: 48px;
-  border-radius: 8px;
+  top: 100px; /* ⭐ KEEP BUTTONS AT TOP LIKE IMAGE 1 */
+  width: 28px;
+  height: 28px;
+  background: #1e293b;
+  color: white;
   border: none;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
+  border-radius: 6px;
   cursor: pointer;
-  z-index: 40;
+  z-index: 30;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow);
-  transition: transform 0.28s ease, opacity 0.2s;
 }
 
-/* left handle placed after left panel (will be moved with CSS) */
+/* left collapse button */
 .left-handle {
-  left: calc(470px + 8px); /* default position based on left width */
-  top: 80px;
+  left: calc(var(--left-col-width) - 70px);
 }
+
+/* when left panel is closed, bring button to screen edge */
+.left-col.closed ~ .left-handle {
+  left: 0;
+}
+
+/* right collapse button */
 .right-handle {
-  right: calc(360px + 8px); /* default position based on right width */
-  top: 80px;
+  right: calc(var(--right-col-width) - 60px);
 }
 
-/* adjust handle position when left closed or right closed */
-.left-handle.collapsed {
-  left: 12px;
-  transform: translateX(-4px);
-}
-.right-handle.collapsed {
-  right: 12px;
-  transform: translateX(4px);
+/* when right panel is closed, bring button to screen edge */
+.right-col.closed ~ .right-handle {
+  right: 0;
 }
 
-/* columns */
+/********* LEFT PANEL *********/
+
 .left-col {
-  width: 470px;
+  width: var(--left-col-width);
   min-width: 300px;
   max-width: 520px;
   padding: 12px;
   overflow: auto;
-  transition: width 0.35s ease, opacity 0.35s ease, transform 0.35s ease;
+  transition: 0.35s ease;
 }
+
 .left-col.closed {
   width: 0;
   min-width: 0;
@@ -124,6 +118,8 @@ body,
   overflow: hidden;
 }
 
+/********* MIDDLE PANEL *********/
+
 .middle-col {
   flex: 1;
   min-width: 420px;
@@ -131,23 +127,19 @@ body,
   display: flex;
   flex-direction: column;
   gap: 12px;
-  transition: margin 0.35s ease;
 }
 
-/* when left closed, push middle to left edge (handles repositioned via JS/CSS) */
-.middle-col.expand-left {
-  margin-left: 8px;
-}
+/********* RIGHT PANEL *********/
 
-/* right column */
 .right-col {
-  width: 360px;
+  width: var(--right-col-width);
   min-width: 260px;
   max-width: 420px;
   padding: 14px;
   overflow: auto;
-  transition: width 0.35s ease, opacity 0.35s ease, transform 0.35s ease;
+  transition: 0.35s ease;
 }
+
 .right-col.closed {
   width: 0;
   min-width: 0;
@@ -158,7 +150,8 @@ body,
   overflow: hidden;
 }
 
-/* glass base */
+/********* GLASS STYLE *********/
+
 .glass {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
@@ -167,30 +160,12 @@ body,
   box-shadow: var(--shadow);
 }
 
-/* small screens */
+/********* MOBILE *********/
+
 @media (max-width: 1100px) {
-  .left-col {
-    display: none !important;
-  }
-  .right-col {
-    display: none !important;
-  }
+  .left-col,
+  .right-col,
   .collapse-handle {
     display: none !important;
   }
-  .middle-col {
-    min-width: 0;
-  }
 }
-
-/* reposition handles responsively */
-@media (max-width: 1400px) {
-  .left-handle {
-    left: calc(360px + 8px);
-  }
-  .right-handle {
-    right: calc(280px + 8px);
-  }
-}
-
-/* If you want fine control, you can change the left/right default widths above */

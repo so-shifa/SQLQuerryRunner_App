@@ -4,21 +4,17 @@ import React, { createContext, useState } from "react";
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem("sqlrunner_user");
-    return saved ? JSON.parse(saved) : { username: "Shifa" };
-  });
+  const [user, setUser] = useState(null);
 
   const login = (username) => {
-    const newUser = { username };
-    setUser(newUser);
-    localStorage.setItem("sqlrunner_user", JSON.stringify(newUser));
+    setUser({ username });
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("sqlrunner_user");
-    // optional: redirect handled in router
+    const logout = () => {
+      setUser(null);
+    };
   };
 
   return (

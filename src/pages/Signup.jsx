@@ -9,7 +9,7 @@ export default function Signup() {
   const [captcha, setCaptcha] = useState('');
   const [error, setError] = useState('');
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
 
     // Simple validation
@@ -25,24 +25,28 @@ export default function Signup() {
       setError('Captcha incorrect. Type "SQL" to verify.');
       return;
     }
+try {
+  const res = await fetch("http://localhost:5000/signup", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password }),
+  });
 
-    // Get existing users
-    const existing = JSON.parse(localStorage.getItem('sqlrunner_users') || '[]');
+  const data = await res.json();
 
-    // Check if username already exists
-    if (existing.some(u => u.username === username)) {
-      setError('Username already exists. Try another one.');
-      return;
-    }
+  if (!res.ok) {
+    setError(data.message || "Signup failed");
+    return;
+  }
 
-    // Save new user
-    const newUser = { username, password };
-    localStorage.setItem('sqlrunner_users', JSON.stringify([...existing, newUser]));
+  alert("Signup successful! Please login.");
+  navigate("/login");
 
-    alert('Signup successful! Please login.');
-    navigate('/login');
-  };
+} catch (err) {
+  setError("Server error — could not reach backend");
+}
 
+  }
   return (
     <div className="auth-container">
       <div className="auth-card">

@@ -1,16 +1,24 @@
 // src/components/RightPanel.jsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "../styles/RightPanel.css";
 
-export default function RightPanel() {
+export default function RightPanel({ selectedTable }) {
+  const [info, setInfo] = useState(null);
+
+  useEffect(() => {
+    if (!selectedTable) return;
+
+    fetch(`http://localhost:5000/table-info/${selectedTable}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.status === "success") setInfo(data);
+      });
+  }, [selectedTable]);
+
   return (
     <div className="right-root">
-      {/* CSS-only tabs */}
       <div className="tabs">
         <input type="radio" name="rp-tab" id="rp-schema" defaultChecked />
-        <input type="radio" name="rp-tab" id="rp-info" />
-        <input type="radio" name="rp-tab" id="rp-tips" />
-
         <div className="tabs-row">
           <label htmlFor="rp-schema" className="tab">
             Schema
@@ -18,35 +26,50 @@ export default function RightPanel() {
         </div>
 
         <div className="tab-content" id="rp-schema-content">
-          <div className="schema-block">
-            <div className="schema-title">📁 Customers</div>
-            <ul className="schema-list">
-              <li>customer_id [int]</li>
-              <li>first_name [varchar]</li>
-              <li>last_name [varchar]</li>
-              <li>age [int]</li>
-              <li>country [varchar]</li>
-            </ul>
-          </div>
+          {!selectedTable ? (
+            <p>Select a table to view details</p>
+          ) : info ? (
+            <>
+              <div className="schema-block">
+                <div className="schema-title">📁 {selectedTable}</div>
+                <ul className="schema-list">
+                  {info.columns.map((c) => (
+                    <li key={c.name}>
+                      {c.name} [{c.type}]
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
-          <div className="schema-block">
-            <div className="schema-title">📁 Orders</div>
-            <ul className="schema-list">
-              <li>order_id [int]</li>
-              <li>item [varchar]</li>
-              <li>amount [int]</li>
-              <li>customer_id [int]</li>
-            </ul>
-          </div>
-
-          <div className="schema-block">
-            <div className="schema-title">📁 Shippings</div>
-            <ul className="schema-list">
-              <li>shipping_id [int]</li>
-              <li>status [varchar]</li>
-              <li>customer [int]</li>
-            </ul>
-          </div>
+              <div className="schema-block">
+                <div className="schema-title">📌 Sample Rows</div>
+                {info.sample.length ? (
+                  <table className="db-table">
+                    <thead>
+                      <tr>
+                        {Object.keys(info.sample[0]).map((col) => (
+                          <th key={col}>{col}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {info.sample.map((row, idx) => (
+                        <tr key={idx}>
+                          {Object.values(row).map((v, i) => (
+                            <td key={i}>{v}</td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <p>No data</p>
+                )}
+              </div>
+            </>
+          ) : (
+            <p>Loading...</p>
+          )}
         </div>
       </div>
     </div>

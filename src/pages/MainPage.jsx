@@ -12,6 +12,7 @@ export default function MainPage() {
   // panel state
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(true);
+  const [selectedTable, setSelectedTable] = useState(null);
 
   // theme state
   const [darkMode, setDarkMode] = useState(false);
@@ -44,7 +45,7 @@ export default function MainPage() {
       <div className="layout-wrap">
         {/* LEFT PANEL */}
         <aside className={`left-col glass ${leftOpen ? "open" : "closed"}`}>
-          <Sidebar />
+          <Sidebar onTableSelect={(table) => setSelectedTable(table)} />
         </aside>
 
         {/* left collapse handle placed between left and middle */}
@@ -85,7 +86,7 @@ export default function MainPage() {
 
         {/* RIGHT PANEL */}
         <aside className={`right-col glass ${rightOpen ? "open" : "closed"}`}>
-          <RightPanel />
+          <RightPanel selectedTable={selectedTable} />
         </aside>
       </div>
     </div>

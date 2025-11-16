@@ -1,80 +1,91 @@
 // src/components/QueryRunner.jsx
-import React, { useEffect, useState } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import "../styles/QueryRunner.css";
+import { AuthContext } from "../contexts/AuthContext";
 
 export default function QueryRunner({ toggleTheme, darkMode }) {
+  const { user } = useContext(AuthContext);
+
   const [query, setQuery] = useState("");
   const [running, setRunning] = useState(false);
-  const [result, setResult] = useState([]);
-  const [showOutput, setShowOutput] = useState(false);
-
-  // history
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState("");
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [history, setHistory] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("sqlrunner_history") || "[]");
-    } catch {
-      return [];
-    }
-  });
+  const [history, setHistory] = useState([]);
 
+  // Load history from backend when page loads
   useEffect(() => {
-    // small sample default results hidden until run
-    setResult([]);
-  }, []);
+    async function loadHistory() {
+      if (!user || !user.username) return;
+      try {
+        const res = await fetch(
+          `http://localhost:5000/history?username=${encodeURIComponent(
+            user.username
+          )}`
+        );
+        const data = await res.json();
+        if (data.status === "success") {
+          setHistory(data.history.map((h) => h.query));
+        }
+      } catch {}
+    }
+    loadHistory();
+  }, [user]);
 
   const runQuery = async () => {
     if (!query.trim()) return;
     setRunning(true);
-    setShowOutput(false);
+    setResult(null);
+    setError("");
 
-    // simulate backend delay
-    setTimeout(() => {
-      // For demo, we set mock result regardless of query
-      const mock = [
-        { first_name: "John", age: 31 },
-        { first_name: "Robert", age: 22 },
-        { first_name: "David", age: 22 },
-      ];
-      setResult(mock);
-      setShowOutput(true);
-      setRunning(false);
+    try {
+      const res = await fetch("http://localhost:5000/execute-query", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query, username: user?.username }),
+      });
 
-      // save to history (most recent first, max 30)
-      const prev = [query, ...history].filter(Boolean).slice(0, 30);
-      setHistory(prev);
-      localStorage.setItem("sqlrunner_history", JSON.stringify(prev));
-      setHistoryOpen(false);
-    }, 700);
-  };
+      const data = await res.json();
 
-  const onSelectHistory = (q) => {
-    setQuery(q);
-    setHistoryOpen(false);
-  };
+      if (data.status === "error") {
+        setError(data.message);
+      } else {
+        setResult(data);
+      }
 
-  const clearHistory = () => {
-    setHistory([]);
-    localStorage.removeItem("sqlrunner_history");
+      // Refresh backend history
+      if (user?.username) {
+        try {
+          const resHistory = await fetch(
+            `http://localhost:5000/history?username=${encodeURIComponent(
+              user.username
+            )}`
+          );
+          const dataHistory = await resHistory.json();
+          if (dataHistory.status === "success") {
+            setHistory(dataHistory.history.map((h) => h.query));
+          }
+        } catch {}
+      }
+    } catch (err) {
+      setError("Backend not reachable");
+    }
+
+    setRunning(false);
   };
 
   return (
     <div className="query-runner-root">
-      {/* top controls */}
       <div className="query-top">
         <div className="tabs-inline">
           <button className="small-tab">Info</button>
           <button className="small-tab">Tips</button>
         </div>
-
-        <div className="top-right">
-          <button className="theme-toggle" onClick={toggleTheme}>
-            {darkMode ? "Light" : "Dark"}
-          </button>
-        </div>
+        <button className="theme-toggle" onClick={toggleTheme}>
+          {darkMode ? "Light" : "Dark"}
+        </button>
       </div>
 
-      {/* SQL editor */}
       <textarea
         className="editor-textarea"
         placeholder="Write your SQL query here..."
@@ -82,7 +93,6 @@ export default function QueryRunner({ toggleTheme, darkMode }) {
         onChange={(e) => setQuery(e.target.value)}
       />
 
-      {/* actions: Run + History */}
       <div className="editor-actions">
         <button className="run-primary" onClick={runQuery} disabled={running}>
           {running ? "Running..." : "▶ Run SQL"}
@@ -91,8 +101,7 @@ export default function QueryRunner({ toggleTheme, darkMode }) {
         <div className="history-wrapper">
           <button
             className="run-primary alt"
-            onClick={() => setHistoryOpen((s) => !s)}
-            title="Show query history"
+            onClick={() => setHistoryOpen(!historyOpen)}
           >
             ⏳ History
           </button>
@@ -100,51 +109,53 @@ export default function QueryRunner({ toggleTheme, darkMode }) {
           {historyOpen && (
             <div className="history-dropdown">
               {history.length === 0 ? (
-                <div className="history-empty">No previous queries</div>
+                <div className="history-empty">No history</div>
               ) : (
-                <>
-                  <div className="history-list">
-                    {history.map((h, i) => (
-                      <div
-                        key={i}
-                        className="history-item"
-                        onClick={() => onSelectHistory(h)}
-                      >
-                        {h.length > 120 ? h.slice(0, 120) + "..." : h}
-                      </div>
-                    ))}
+                history.map((h, i) => (
+                  <div
+                    key={i}
+                    className="history-item"
+                    onClick={() => setQuery(h)}
+                  >
+                    {h}
                   </div>
-                  <div className="history-actions">
-                    <button onClick={clearHistory}>Clear</button>
-                  </div>
-                </>
+                ))
               )}
             </div>
           )}
         </div>
       </div>
 
-      {/* output (only show when showOutput true) */}
-      {showOutput && (
-        <div className="output-area">
+      <div className="output-area">
+        {error && <p style={{ color: "red" }}>{error}</p>}
+
+        {result?.rows && (
           <table className="output-table">
             <thead>
               <tr>
-                <th>first_name</th>
-                <th>age</th>
+                {result.columns.map((col) => (
+                  <th key={col}>{col}</th>
+                ))}
               </tr>
             </thead>
             <tbody>
-              {result.map((r, idx) => (
+              {result.rows.map((row, idx) => (
                 <tr key={idx}>
-                  <td>{r.first_name}</td>
-                  <td>{r.age}</td>
+                  {result.columns.map((col) => (
+                    <td key={col}>{row[col]}</td>
+                  ))}
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
-      )}
+        )}
+
+        {result?.message && !result.rows && (
+          <p style={{ color: "green" }}>
+            {result.message} (Rows affected: {result.rows_affected})
+          </p>
+        )}
+      </div>
     </div>
   );
 }
