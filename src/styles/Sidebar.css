@@ -1,0 +1,38 @@
+/* src/styles/Sidebar.css */
+.sidebar-root {
+  font-size: 14px;
+  color: #07204a;
+}
+.sidebar-section {
+  margin-bottom: 18px;
+}
+.sidebar-section h3 {
+  margin: 0 0 8px 0;
+  font-size: 15px;
+  color: var(--accent);
+}
+.table-wrap {
+  overflow: auto;
+  border-radius: 8px;
+}
+.db-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: transparent;
+}
+.db-table th {
+  background: rgba(255, 255, 255, 0.35);
+  padding: 8px 10px;
+  text-align: left;
+  font-weight: 600;
+}
+.db-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  color: #123;
+}
+
+/* little visual spacing for readability */
+.db-table tr:nth-child(even) td {
+  background: rgba(255, 255, 255, 0.02);
+}

@@ -1,0 +1,130 @@
+/* src/styles/QueryRunner.css */
+.query-runner-root {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+}
+
+.query-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.tabs-inline {
+  display: flex;
+  gap: 8px;
+}
+.small-tab {
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.34);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+}
+.top-right .theme-toggle {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  background: transparent;
+}
+
+/* editor */
+.editor-textarea {
+  min-height: 160px;
+  border-radius: 10px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.28);
+  font-family: monospace;
+  font-size: 14px;
+  color: var(--text-color);
+  resize: vertical;
+}
+
+/* actions row */
+.editor-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 6px;
+  position: relative;
+}
+.run-primary {
+  background: var(--accent);
+  color: white;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+.run-primary.alt {
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  color: var(--accent);
+}
+
+/* history dropdown */
+.history-wrapper {
+  position: relative;
+}
+.history-dropdown {
+  position: absolute;
+  top: 44px;
+  left: 0;
+  width: 320px;
+  max-height: 260px;
+  overflow: auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  z-index: 60;
+  padding: 8px;
+}
+.history-item {
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.history-item:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+.history-empty {
+  padding: 12px;
+  color: #666;
+}
+.history-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 8px;
+}
+
+/* output table improved borders */
+.output-area {
+  margin-top: 12px;
+  overflow: auto;
+  flex: 1;
+}
+.output-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid rgba(10, 35, 85, 0.12);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.output-table th,
+.output-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(10, 35, 85, 0.06);
+  text-align: left;
+}
+.output-table thead th {
+  background: rgba(255, 255, 255, 0.34);
+  font-weight: 600;
+}
+.output-table tbody tr:hover td {
+  background: rgba(37, 99, 235, 0.04);
+}

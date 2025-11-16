@@ -1,0 +1,66 @@
+/* Full page center alignment */
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #eef2ff, #c7d2fe);
+  font-family: 'Poppins', sans-serif;
+}
+
+/* The login card box */
+.auth-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  width: 350px;
+  text-align: center;
+}
+
+.brand {
+  color: #2563eb;
+}
+
+.auth-card h2 {
+  margin-bottom: 1.5rem;
+}
+
+.auth-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.auth-card input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.auth-card button {
+  padding: 10px;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.auth-card button:hover {
+  background-color: #1d4ed8;
+}
+
+.switch {
+  margin-top: 1rem;
+  font-size: 14px;
+}
+
+.error {
+  color: red;
+  font-size: 13px;
+  margin-top: 5px;
+}
