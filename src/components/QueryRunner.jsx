@@ -1,19 +1,28 @@
 // src/components/QueryRunner.jsx
-import React, { useState, useContext, useEffect } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import "../styles/QueryRunner.css";
 import { AuthContext } from "../contexts/AuthContext";
+import ModalPortal from "../components/ModalPortal";
 
-export default function QueryRunner({ toggleTheme, darkMode }) {
+export default function QueryRunner({
+  query,
+  setQuery,
+  historyOpen,
+  setHistoryOpen,
+  availableTables = [],
+  selectedTable,
+}) {
   const { user } = useContext(AuthContext);
 
-  const [query, setQuery] = useState("");
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
-  const [historyOpen, setHistoryOpen] = useState(false);
   const [history, setHistory] = useState([]);
+  const [infoOpen, setInfoOpen] = useState(false);
+  const [tipsOpen, setTipsOpen] = useState(false);
 
-  // Load history from backend when page loads
+  const textareaRef = useRef();
+
   useEffect(() => {
     async function loadHistory() {
       if (!user || !user.username) return;
@@ -32,12 +41,83 @@ export default function QueryRunner({ toggleTheme, darkMode }) {
     loadHistory();
   }, [user]);
 
-  const runQuery = async () => {
-    if (!query.trim()) return;
-    setRunning(true);
-    setResult(null);
-    setError("");
+  // basic client-side SQL validation
+  const validateQuery = (q) => {
+    const trimmed = q.trim();
+    if (!trimmed) return { ok: false, msg: "Query is empty" };
 
+    // require ending semicolon
+    if (!trimmed.endsWith(";")) {
+      return {
+        ok: false,
+        msg: "SQL QUERY IS WRONG — please terminate statements with a semicolon ';'.",
+      };
+    }
+
+    // find table names after FROM / JOIN / INTO (very light heuristic)
+    const lowered = trimmed.toLowerCase();
+    const tokens = lowered
+      .replace(/[,();]/g, " ")
+      .split(/\s+/)
+      .filter(Boolean);
+
+    const tableHints = [];
+    for (let i = 0; i < tokens.length; i++) {
+      if (
+        tokens[i] === "from" ||
+        tokens[i] === "join" ||
+        tokens[i] === "into" ||
+        tokens[i] === "update"
+      ) {
+        if (tokens[i + 1]) {
+          // remove possible alias or schema prefix
+          const name = tokens[i + 1].split(".").pop();
+          tableHints.push(name);
+        }
+      }
+    }
+
+    // if we found hints, ensure they exist in availableTables (case-insensitive)
+    if (
+      tableHints.length > 0 &&
+      availableTables &&
+      availableTables.length > 0
+    ) {
+      const lowerTables = availableTables.map((t) => t.toLowerCase());
+      for (const tname of tableHints) {
+        if (!lowerTables.includes(tname)) {
+          return {
+            ok: false,
+            msg: `SQL QUERY IS WRONG — referenced table "${tname}" not found. Use an existing table name.`,
+          };
+        }
+      }
+    }
+
+    // basic sanity: must contain a recognized SQL keyword
+    if (
+      !/\b(select|insert|update|delete|create|drop|alter|with)\b/i.test(trimmed)
+    ) {
+      return {
+        ok: false,
+        msg: "SQL QUERY IS WRONG — unrecognized or unsupported statement.",
+      };
+    }
+
+    return { ok: true, msg: "" };
+  };
+
+  const runQuery = async () => {
+    setError("");
+    setResult(null);
+
+    const validation = validateQuery(query || "");
+    if (!validation.ok) {
+      setError(validation.msg);
+      return;
+    }
+
+    setRunning(true);
     try {
       const res = await fetch("http://localhost:5000/execute-query", {
         method: "POST",
@@ -46,14 +126,13 @@ export default function QueryRunner({ toggleTheme, darkMode }) {
       });
 
       const data = await res.json();
-
       if (data.status === "error") {
-        setError(data.message);
+        setError(data.message || "Query failed");
       } else {
         setResult(data);
       }
 
-      // Refresh backend history
+      // refresh history from server
       if (user?.username) {
         try {
           const resHistory = await fetch(
@@ -70,27 +149,129 @@ export default function QueryRunner({ toggleTheme, darkMode }) {
     } catch (err) {
       setError("Backend not reachable");
     }
-
     setRunning(false);
   };
+
+  // keyboard: Enter runs (Shift+Enter for newline)
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      runQuery();
+    }
+  };
+
+  // keyboard shortcut: Ctrl/Cmd+Enter also runs
+  const handleKeyUp = (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+      runQuery();
+    }
+  };
+
+  // small helper to render output text safely with wrapping
+  const renderErrorMessage = (msg) => {
+    return (
+      <div
+        style={{
+          whiteSpace: "pre-wrap",
+          wordBreak: "break-word",
+          overflowWrap: "anywhere",
+        }}
+      >
+        {msg}
+      </div>
+    );
+  };
+  const [darkMode, setDarkMode] = useState(
+    document.body.classList.contains("dark")
+  );
+
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.add("dark");
+      localStorage.setItem("sqlrunner_theme", "dark");
+    } else {
+      document.body.classList.remove("dark");
+      localStorage.setItem("sqlrunner_theme", "light");
+    }
+  }, [darkMode]);
 
   return (
     <div className="query-runner-root">
       <div className="query-top">
         <div className="tabs-inline">
-          <button className="small-tab">Info</button>
-          <button className="small-tab">Tips</button>
+          <button className="small-tab" onClick={() => setInfoOpen(true)}>
+            Info
+          </button>
+          <button className="small-tab" onClick={() => setTipsOpen(true)}>
+            Tips
+          </button>
+          {infoOpen && (
+            <ModalPortal>
+              <div className="modal-overlay" onClick={() => setInfoOpen(false)}>
+                <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+                  <h3>ℹ️ How to Use SQLRunner</h3>
+                  <ul>
+                    <li>Use &lt; and &gt; buttons to collapse side panels.</li>
+                    <li>Click SQLRunner logo to reset layout.</li>
+                    <li>Press Enter to run query.</li>
+                    <li>Shift+Enter for new line.</li>
+                    <li>Ctrl/Cmd+Enter runs instantly.</li>
+                    <li>History dropdown stores your queries.</li>
+                  </ul>
+                  <button
+                    className="modal-close"
+                    onClick={() => setInfoOpen(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </ModalPortal>
+          )}
+
+          {tipsOpen && (
+            <ModalPortal>
+              <div className="modal-overlay" onClick={() => setTipsOpen(false)}>
+                <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+                  <h3>💡 SQL Tips</h3>
+                  <ul>
+                    <li>End SQL queries with a semicolon (;).</li>
+                    <li>Table names must match exactly.</li>
+                    <li>Use WHERE to filter rows.</li>
+                    <li>Use ORDER BY for sorting.</li>
+                    <li>Use LIMIT to restrict rows.</li>
+                  </ul>
+                  <button
+                    className="modal-close"
+                    onClick={() => setTipsOpen(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </ModalPortal>
+          )}
         </div>
-        <button className="theme-toggle" onClick={toggleTheme}>
-          {darkMode ? "Light" : "Dark"}
-        </button>
+
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            className="theme-toggle pretty-toggle"
+            onClick={() => setDarkMode(!darkMode)}
+          >
+            <span className="icon">{darkMode ? "🌞" : "🌜"}</span>
+            <span className="label">{darkMode ? "Light" : "Dark"}</span>
+          </button>
+        </div>
       </div>
 
       <textarea
+        ref={textareaRef}
         className="editor-textarea"
-        placeholder="Write your SQL query here..."
+        placeholder="Write your SQL query here... (press Enter to run, Shift+Enter for newline)"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
+        onKeyDown={handleKeyDown}
+        onKeyUp={handleKeyUp}
       />
 
       <div className="editor-actions">
@@ -107,7 +288,7 @@ export default function QueryRunner({ toggleTheme, darkMode }) {
           </button>
 
           {historyOpen && (
-            <div className="history-dropdown">
+            <div className="history-dropdown" style={{ position: "absolute" }}>
               {history.length === 0 ? (
                 <div className="history-empty">No history</div>
               ) : (
@@ -127,7 +308,7 @@ export default function QueryRunner({ toggleTheme, darkMode }) {
       </div>
 
       <div className="output-area">
-        {error && <p style={{ color: "red" }}>{error}</p>}
+        {error && <p style={{ color: "red" }}>{renderErrorMessage(error)}</p>}
 
         {result?.rows && (
           <table className="output-table">
@@ -142,7 +323,15 @@ export default function QueryRunner({ toggleTheme, darkMode }) {
               {result.rows.map((row, idx) => (
                 <tr key={idx}>
                   {result.columns.map((col) => (
-                    <td key={col}>{row[col]}</td>
+                    <td
+                      key={col}
+                      style={{
+                        wordBreak: "break-word",
+                        overflowWrap: "anywhere",
+                      }}
+                    >
+                      {String(row[col])}
+                    </td>
                   ))}
                 </tr>
               ))}
@@ -151,7 +340,7 @@ export default function QueryRunner({ toggleTheme, darkMode }) {
         )}
 
         {result?.message && !result.rows && (
-          <p style={{ color: "green" }}>
+          <p style={{ color: "green", wordBreak: "break-word" }}>
             {result.message} (Rows affected: {result.rows_affected})
           </p>
         )}

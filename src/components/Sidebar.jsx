@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import "../styles/Sidebar.css";
 
-export default function Sidebar({ onTableSelect }) {
+export default function Sidebar({ onTableSelect, onTablesChange }) {
   const [tables, setTables] = useState([]);
   const [tableData, setTableData] = useState({}); // { tableName: rows }
   const [loading, setLoading] = useState(false);
@@ -13,27 +13,34 @@ export default function Sidebar({ onTableSelect }) {
       .then((res) => res.json())
       .then((data) => {
         if (data.status === "success") {
-          setTables(
-            data.tables.filter(
-              (name) => name !== "Users" && name !== "QueryHistory"
-            )
+          const filtered = data.tables.filter(
+            (name) => name !== "Users" && name !== "QueryHistory"
           );
+          setTables(filtered);
+          if (typeof onTablesChange === "function") onTablesChange(filtered);
         }
+      })
+      .catch(() => {
+        if (typeof onTablesChange === "function") onTablesChange([]);
       });
-  }, []);
+  }, [onTablesChange]);
 
   // Fetch preview rows when each table appears
   const fetchPreview = async (table) => {
     setLoading(true);
-    const res = await fetch(`http://localhost:5000/preview/${table}`);
-    const data = await res.json();
-    setLoading(false);
-
-    if (data.status === "success") {
-      setTableData((prev) => ({
-        ...prev,
-        [table]: data.rows,
-      }));
+    try {
+      const res = await fetch(`http://localhost:5000/preview/${table}`);
+      const data = await res.json();
+      if (data.status === "success") {
+        setTableData((prev) => ({
+          ...prev,
+          [table]: data.rows,
+        }));
+      }
+    } catch (e) {
+      // ignore
+    } finally {
+      setLoading(false);
     }
   };
 

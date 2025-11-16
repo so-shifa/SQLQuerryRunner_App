@@ -1,77 +1,97 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import './Login.css'; // reuse same CSS for simplicity
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import "./Login.css";
 
 export default function Signup() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [captcha, setCaptcha] = useState("");
+  const [err, setErr] = useState("");
   const navigate = useNavigate();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [captcha, setCaptcha] = useState('');
-  const [error, setError] = useState('');
 
-  const handleSignup = async (e) => {
+  const submit = async (e) => {
     e.preventDefault();
+    setErr("");
 
-    // Simple validation
-    if (username.length < 3) {
-      setError('Username must be at least 3 characters.');
-      return;
+    if (!/^[A-Za-z][A-Za-z0-9_.]{2,29}$/.test(username))
+      return setErr(
+        "Username: 3-30 chars, start with letter. Allowed: letters, digits, _ ."
+      );
+
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(password))
+      return setErr("Password must be 8+ chars with upper, lower, digit.");
+
+    if (captcha.trim().toLowerCase() !== "sql")
+      return setErr('Captcha incorrect. Type "SQL".');
+
+    try {
+      const res = await fetch("http://localhost:5000/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        return setErr(data.message || "Signup failed.");
+      }
+
+      alert("Signup successful — please login.");
+      navigate("/login");
+    } catch (error) {
+      setErr("Server unreachable.");
     }
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters.');
-      return;
-    }
-    if (captcha.trim().toLowerCase() !== 'sql') {
-      setError('Captcha incorrect. Type "SQL" to verify.');
-      return;
-    }
-try {
-  const res = await fetch("http://localhost:5000/signup", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password }),
-  });
+  };
 
-  const data = await res.json();
-
-  if (!res.ok) {
-    setError(data.message || "Signup failed");
-    return;
-  }
-
-  alert("Signup successful! Please login.");
-  navigate("/login");
-
-} catch (err) {
-  setError("Server error — could not reach backend");
-}
-
-  }
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <h2>Sign Up for <span className="brand">SQLRunner</span></h2>
-        <form onSubmit={handleSignup}>
+    <div className="auth-root">
+      <div className="auth-card card">
+        <h2 className="h1">Create account</h2>
+        <p className="small">
+          Set username, password and type <strong>SQL</strong> to verify.
+        </p>
+
+        <form className="form" onSubmit={submit}>
           <input
+            className="input"
             placeholder="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
           />
+
           <input
+            className="input"
             type="password"
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+
           <input
-            placeholder='Enter "SQL" to verify'
+            className="input"
+            placeholder='Type "SQL" to verify'
             value={captcha}
             onChange={(e) => setCaptcha(e.target.value)}
           />
-          {error && <p className="error">{error}</p>}
-          <button type="submit">Sign Up</button>
+
+          {err && <div className="error">{err}</div>}
+
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginTop: 10,
+            }}
+          >
+            <button className="btn btn-primary" type="submit">
+              Sign Up
+            </button>
+            <Link to="/login" className="btn btn-ghost">
+              Back to Login
+            </Link>
+          </div>
         </form>
-        <p className="switch">Already have an account? <Link to="/login">Login</Link></p>
       </div>
     </div>
   );

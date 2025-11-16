@@ -1,66 +1,89 @@
-/* Full page center alignment */
-.auth-container {
+.auth-root {
+  min-height: 100vh;
   display: flex;
-  justify-content: center;
   align-items: center;
-  height: 100vh;
-  background: linear-gradient(135deg, #eef2ff, #c7d2fe);
-  font-family: 'Poppins', sans-serif;
+  justify-content: center;
+  padding: 20px;
 }
-
-/* The login card box */
 .auth-card {
-  background: white;
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-  width: 350px;
-  text-align: center;
+  width: 420px;
+  max-width: 95%;
 }
-
-.brand {
-  color: #2563eb;
-}
-
-.auth-card h2 {
-  margin-bottom: 1.5rem;
-}
-
-.auth-card form {
+.form {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  margin-top: 14px;
 }
-
-.auth-card input {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+.input {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #e6eef9;
+  outline: none;
   font-size: 14px;
 }
-
-.auth-card button {
-  padding: 10px;
-  background-color: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 15px;
-  cursor: pointer;
-  margin-top: 10px;
+.input:focus {
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.08);
+  border-color: #c7ddff;
 }
-
-.auth-card button:hover {
-  background-color: #1d4ed8;
-}
-
-.switch {
-  margin-top: 1rem;
-  font-size: 14px;
-}
-
 .error {
-  color: red;
-  font-size: 13px;
-  margin-top: 5px;
+  background: #fff6f6;
+  border: 1px solid #fed7d7;
+  color: #991b1b;
+  padding: 8px;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+.small {
+  color: #6b7280;
+}
+/* ADD THIS — Missing card UI */
+.card {
+  background: white;
+  padding: 28px;
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+.h1 {
+  margin-bottom: 16px;
+}
+
+.small {
+  margin-bottom: 14px;
+  display: block;
+}
+.btn {
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: background 0.25s ease, transform 0.1s ease;
+}
+
+/* Primary Blue Button (Normal State) */
+.btn-primary {
+  background: #2563eb;   /* SAME COLOR as hover before */
+  color: white;
+}
+
+/* Hover State – slightly darker */
+.btn-primary:hover {
+  background: #1d4ed8;  /* darker */
+}
+
+/* Active click effect */
+.btn-primary:active {
+  transform: scale(0.96);
+}
+
+/* Ghost Button */
+.btn-ghost {
+  background: transparent;
+  color: #2563eb;
+}
+.btn-ghost:hover {
+  text-decoration: underline;
 }

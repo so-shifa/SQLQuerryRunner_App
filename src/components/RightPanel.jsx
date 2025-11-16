@@ -40,9 +40,10 @@ export default function RightPanel({ selectedTable }) {
                   ))}
                 </ul>
               </div>
+              <br />
 
               <div className="schema-block">
-                <div className="schema-title">📌 Sample Rows</div>
+                <div className="schema-title">📌 Table Rows</div>
                 {info.sample.length ? (
                   <table className="db-table">
                     <thead>

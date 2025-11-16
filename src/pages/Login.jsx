@@ -1,17 +1,23 @@
-import React, { useState, useContext } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import React, { useContext, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../contexts/AuthContext";
-import "./Login.css"; // 👈 we’ll add a clean style file
+import "./Login.css";
 
 export default function Login() {
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [err, setErr] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e) => {
+  const handle = async (e) => {
     e.preventDefault();
+    setErr("");
+
+    if (!username || !password) return setErr("Enter username and password.");
+
+    setLoading(true);
 
     try {
       const res = await fetch("http://localhost:5000/login", {
@@ -21,44 +27,68 @@ export default function Login() {
       });
 
       const data = await res.json();
+      setLoading(false);
 
       if (!res.ok) {
-        setError(data.message || "Login failed");
-        return;
+        return setErr(data.message || "Invalid credentials.");
       }
 
-      // successful login
-      login(data.user.username);
+      // success
+      login(username);
       navigate("/");
-    } catch (err) {
-      setError("Server error — could not reach backend");
+    } catch (error) {
+      setLoading(false);
+      setErr("Server unreachable.");
     }
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <h2>
-          Welcome to <span className="brand">SQLRunner</span>
+    <div className="auth-root">
+      <div className="auth-card card">
+        <h2 className="h1">
+          Welcome back to <span style={{ color: "#2563eb" }}>SQLRunner</span>
         </h2>
-        <form onSubmit={handleLogin}>
+        <p className="small">
+          Run SQL queries against a sample DB — type, run, view results.
+        </p>
+
+        <form className="form" onSubmit={handle}>
           <input
+            className="input"
             placeholder="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
           />
+
           <input
+            className="input"
             type="password"
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          {error && <p className="error">{error}</p>}
-          <button type="submit">Login</button>
+
+          {err && <div className="error">{err}</div>}
+
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginTop: 10,
+            }}
+          >
+            <button
+              className="btn btn-primary"
+              type="submit"
+              disabled={loading}
+            >
+              {loading ? "Signing in..." : "Login"}
+            </button>
+            <Link to="/signup" className="btn btn-ghost">
+              Sign Up
+            </Link>
+          </div>
         </form>
-        <p className="switch">
-          New here? <Link to="/signup">Sign Up</Link>
-        </p>
       </div>
     </div>
   );

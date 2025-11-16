@@ -8,8 +8,14 @@ import Signup from "./pages/Signup";
 import "./App.css";
 
 function PrivateRoute({ children }) {
-  const { user } = useContext(AuthContext);
-  return user ? children : <Navigate to="/signup" />;
+  const { user, loading } = useContext(AuthContext);
+
+  // Wait until AuthContext finishes checking localStorage
+  if (loading) {
+    return null; // or you can return a loader component
+  }
+
+  return user ? children : <Navigate to="/login" />;
 }
 
 function App() {

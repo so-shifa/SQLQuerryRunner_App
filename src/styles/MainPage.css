@@ -1,171 +1,201 @@
-/* src/styles/MainPage.css (FINAL FIXED FOR TOP BUTTON POSITION) */
+/* ------------------------------------------------------------- */
+/* MainPage.css — FULL THEME-MATCHED VERSION (HTML-style design) */
+/* ------------------------------------------------------------- */
 
 :root {
-  --accent: #2563eb;
-  --accent-2: #3b82f6;
-  --glass-bg: rgba(255, 255, 255, 0.5);
-  --glass-border: rgba(255, 255, 255, 0.28);
-  --shadow: 0 8px 20px rgba(12, 22, 40, 0.08);
-
-  --left-col-width: 470px;
-  --right-col-width: 360px;
+  --header-height: 70px;
 }
 
-/* dark mode */
-body.dark {
-  --glass-bg: hsla(230, 40%, 6%, 0.797);
-  --glass-border: rgba(255, 255, 255, 0.12);
-  background: linear-gradient(135deg, #0f2236, #1e293b);
-  color: white;
-}
-
-html,
-body,
-#root {
-  margin: 0;
-  height: 100%;
-  overflow-x: hidden;
-}
-
+/* Entire page container */
 .main-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #dbeafe, #bfdbfe 60%, #e6f0ff);
-  transition: background 0.35s;
+  width: 100%;
+  background: var(--bg); /* gradient from theme.css */
+  color: var(--text);
+  transition: background 0.4s ease, color 0.3s ease;
+  padding-bottom: 20px;
 }
-
-/********* HEADER *********/
-.header {
+.logo{
+  height: 40px;
+  width: 40px;
+  text-align: center;
+  font-weight: 900;
+  font-size: 24px;
+  color: #e6eaf3;
+  background-color: #1a1d52;
+  border-radius: 100px;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  padding: 14px 20px;
-  margin: 12px;
-  border-radius: 10px;
+  }
+
+/* ---------------------- */
+/* HEADER (navbar clone)  */
+/* ---------------------- */
+.header {
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 25px;
+  margin: 15px 20px;
+  font-size: 1.3rem;
+  font-weight: 600;
+  border-radius: 14px;
 }
 
+/* Brand name */
 .header .brand {
-  font-weight: bold;
-  font-size: 20px;
   color: var(--accent);
+  font-weight: 600;
 }
 
-/********* LAYOUT *********/
+/* Right header section */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  color: var(--text);
+}
+
+.logout-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: #2563eb; /* DEFAULT BLUE */
+  color: white;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background 0.25s;
+}
+
+.logout-btn:hover {
+  background: #1d4ed8; /* DARKER BLUE ON HOVER */
+}
+
+/* ---------------------- */
+/* MAIN 3-PANEL LAYOUT    */
+/* ---------------------- */
 
 .layout-wrap {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
   position: relative;
-  display: flex;
-  gap: 14px;
-  padding: 10px 20px 40px;
-  align-items: stretch;
 }
 
-/********* COLLAPSE BUTTONS (TOP POSITION) *********/
-
-.collapse-handle {
-  position: absolute;
-  top: 100px; /* ⭐ KEEP BUTTONS AT TOP LIKE IMAGE 1 */
-  width: 28px;
-  height: 28px;
-  background: #1e293b;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  z-index: 30;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* left collapse button */
-.left-handle {
-  left: calc(var(--left-col-width) - 70px);
-}
-
-/* when left panel is closed, bring button to screen edge */
-.left-col.closed ~ .left-handle {
-  left: 0;
-}
-
-/* right collapse button */
-.right-handle {
-  right: calc(var(--right-col-width) - 60px);
-}
-
-/* when right panel is closed, bring button to screen edge */
-.right-col.closed ~ .right-handle {
-  right: 0;
-}
-
-/********* LEFT PANEL *********/
-
+/* ------------- LEFT PANEL -------------- */
 .left-col {
-  width: var(--left-col-width);
-  min-width: 300px;
+  width: 470px;
+  min-width: 330px;
   max-width: 520px;
-  padding: 12px;
-  overflow: auto;
+  padding: 20px;
+  overflow-y: auto;
+  border-radius: 14px;
   transition: 0.35s ease;
 }
-
 .left-col.closed {
   width: 0;
   min-width: 0;
+  opacity: 0;
   padding: 0;
   margin: 0;
-  opacity: 0;
-  transform: translateX(-12px);
+  transform: translateX(-10px);
   overflow: hidden;
 }
 
-/********* MIDDLE PANEL *********/
+/* Collapse handle */
+.collapse-handle {
+  position: absolute;
+  width: 36px;
+  height: 48px;
+  border-radius: 10px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  cursor: pointer;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow);
+  color: var(--text);
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+.collapse-handle:hover {
+  background: rgba(255, 255, 255, 0.6);
+}
 
+/* -------------- MIDDLE PANEL (QueryRunner) -------------- */
 .middle-col {
   flex: 1;
   min-width: 420px;
-  padding: 18px;
+  padding: 20px;
+  border-radius: 14px;
   display: flex;
+  overflow: visible; /* FIX */
   flex-direction: column;
-  gap: 12px;
+  gap: 15px;
+  transition: 0.3s ease;
 }
 
-/********* RIGHT PANEL *********/
-
+/* -------------- RIGHT PANEL -------------------- */
 .right-col {
-  width: var(--right-col-width);
+  width: 360px;
   min-width: 260px;
   max-width: 420px;
-  padding: 14px;
-  overflow: auto;
+  padding: 20px;
+  overflow-y: auto;
+  border-radius: 14px;
   transition: 0.35s ease;
 }
-
 .right-col.closed {
   width: 0;
   min-width: 0;
+  opacity: 0;
   padding: 0;
   margin: 0;
-  opacity: 0;
-  transform: translateX(12px);
+  transform: translateX(10px);
   overflow: hidden;
 }
 
-/********* GLASS STYLE *********/
+/* ---------------------- */
+/* GLASS STYLE for ALL    */
+/* ---------------------- */
 
-.glass {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
+.left-col.glass,
+.middle-col.glass,
+.right-col.glass,
+.header.glass {
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: 14px;
   box-shadow: var(--shadow);
+  color: var(--text);
 }
 
-/********* MOBILE *********/
-
+/* ---------------------- */
+/* RESPONSIVE BEHAVIOUR   */
+/* ---------------------- */
 @media (max-width: 1100px) {
   .left-col,
   .right-col,
   .collapse-handle {
     display: none !important;
+  }
+  .middle-col {
+    min-width: 0;
+    padding: 15px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    margin: 10px;
+  }
+  .layout-wrap {
+    flex-direction: column;
+    padding: 10px;
   }
 }
